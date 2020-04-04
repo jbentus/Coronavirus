@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace Coronavirus.Server
 {
@@ -18,10 +16,22 @@ namespace Coronavirus.Server
 
         public IConfiguration Configuration { get; }
 
+        private string SurgeAndLocalhostCorsPolicy = nameof(SurgeAndLocalhostCorsPolicy);
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(SurgeAndLocalhostCorsPolicy,
+                builder =>
+                {
+                    builder.WithOrigins("http://coronavirus-2019.surge.sh", "https://coronavirus-2019.surge.sh")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
 
             services.AddControllersWithViews();
         }
@@ -47,8 +57,11 @@ namespace Coronavirus.Server
 
             app.UseRouting();
 
+            app.UseCors(SurgeAndLocalhostCorsPolicy);
+
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapGet("/", context => context.Response.WriteAsync("Up!"));
                 endpoints.MapControllers();
                 endpoints.MapFallbackToFile("index.html");
             });
