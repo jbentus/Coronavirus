@@ -1,0 +1,25 @@
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
+WORKDIR /app
+
+# copy csproj and restore as distinct layers
+COPY Coronavirus_Server.sln .
+COPY Server/*.csproj ./Server/
+COPY Shared/*.csproj ./Shared/
+RUN dotnet restore
+
+# copy everything else and build app
+COPY Server/. ./Server/
+COPY Shared/. ./Shared/
+RUN dotnet publish -c Release -o publish
+
+
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
+WORKDIR /app
+
+ENV ASPNETCORE_URLS=https://+;http://+
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=1234
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=./https/aspnetapp.pfx
+
+COPY --from=build /app/publish ./
+COPY aspnetapp.pfx ./https/
+ENTRYPOINT ["dotnet", "Coronavirus.Server.dll"]
