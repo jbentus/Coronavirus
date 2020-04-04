@@ -1,0 +1,6 @@
+# ssh -i ssh-key.pem ec2-user@3.81.235.76
+
+# docker build -f Dockerfile_Server -t 866969444757.dkr.ecr.us-east-1.amazonaws.com/coronavirus-server:latest .
+# docker run --rm -p 80:80 -p 443:443 --name coronavirus-server 866969444757.dkr.ecr.us-east-1.amazonaws.com/coronavirus-server
+
+
